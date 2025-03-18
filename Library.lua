@@ -15,9 +15,6 @@ local getgenv = getgenv or function()
 end
 local setclipboard = setclipboard or nil
 local protectgui = protectgui or (syn and syn.protect_gui) or function() end
-local gethui = gethui or function() 
-    return CoreGui 
-end
 
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
@@ -547,7 +544,7 @@ local function ParentUI(UI: Instance)
     pcall(protectgui, UI);
 
     if not pcall(function()
-            UI.Parent = gethui()
+            UI.Parent = game.CoreGui
         end) then
         UI.Parent = Library.LocalPlayer:WaitForChild("PlayerGui", math.huge)
     end
