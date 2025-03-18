@@ -567,7 +567,7 @@ end)
 
 local ModalElement = New("TextButton", {
     BackgroundTransparency = 1,
-    Modal = false,
+    Visible = false,
     Size = UDim2.fromScale(0, 0),
     Text = "",
     ZIndex = -999,
@@ -4988,7 +4988,7 @@ function Library:CreateWindow(WindowInfo)
         end
 
         MainFrame.Visible = Library.Toggled
-        ModalElement.Modal = Library.Toggled
+        ModalElement.Visible = Library.Toggled
 
         if Library.Toggled and not Library.IsMobile then
             local OldMouseIconEnabled = UserInputService.MouseIconEnabled
