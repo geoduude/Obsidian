@@ -564,6 +564,7 @@ end)
 
 local ModalElement = New("TextButton", {
     BackgroundTransparency = 1,
+    Modal = true,
     Visible = false,
     Size = UDim2.fromScale(0, 0),
     Text = "",
