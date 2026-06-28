@@ -6169,6 +6169,10 @@ do
             local DisabledValues = Dropdown.DisabledValues
 
             for Button, _ in Buttons do
+                if not (Button and Button.Parent) then
+                    continue
+                end
+
                 Button.Parent:Destroy()
             end
             table.clear(Buttons)

@@ -1,3 +1,15 @@
+## 28.06.2026
+
+```diff
+[features]
++ Groupbox:SetVisible(Visible: boolean), Groupbox:Show(), Groupbox:Hide()
+
+[fixes]
++ Fixed SetCornerRadius skipping zero-offset and full-radius corners
++ Fixed searching restoring hidden elements each time
++ Fixed attempt to index nil with 'Destroy' errors in Dropdown:BuildDropdownList()
+```
+
 ## 26.06.2026
 
 ```diff
@@ -7,6 +19,7 @@
 + KeyPicker for buttons (Only works with 'Press' mode, Callback to the button will have an passed value FromKeyPicker which will be true if it was activated by the key picker)
 + Icon and IconPosition parameters to Library:AddDraggableLabel() and Library:AddDraggableButton()
 + Slider.AllowRightClickInput (right click/double tap to open text input for specific value)
++ Library:AddDraggableImageButton()
 
 [changes]
 + Implemented individual rounded corners for certain elements (dropdowns, right-click context menus)
