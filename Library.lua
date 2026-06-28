@@ -735,8 +735,8 @@ local function ApplySearchToTab(Tab, Search)
         if Groupbox.Visible == false then
             continue
         end
-        local VisibleElements = 0
 
+        local VisibleElements = 0
         for _, ElementInfo in Groupbox.Elements do
             if ElementInfo.Type == "Divider" then
                 ElementInfo.Holder.Visible = false
@@ -757,6 +757,7 @@ local function ApplySearchToTab(Tab, Search)
                     ElementInfo.SubButton.Base.Visible = false
                 end
                 ElementInfo.Holder.Visible = Visible
+
                 if Visible then
                     VisibleElements += 1
                 end
@@ -8882,6 +8883,7 @@ function Library:CreateWindow(WindowInfo)
             local Groupbox = {
                 Connections = {},
                 Destroyed = false,
+                Visible = true,
 
                 BoxHolder = BoxHolder,
                 Holder = GroupboxHolder,
@@ -8889,14 +8891,8 @@ function Library:CreateWindow(WindowInfo)
 
                 Tab = Tab,
                 DependencyBoxes = {},
-                Elements = {},
-                Visible = true,
+                Elements = {}
             }
-
-            function Groupbox:SetVisible(Visible)
-                self.Visible = Visible
-                self.BoxHolder.Visible = Visible
-            end
 
             function Groupbox:Resize()
                 GroupboxHolder.Size = UDim2.new(1, 0, 0, (GroupboxList.AbsoluteContentSize.Y / Library.DPIScale) + 49)
@@ -8934,14 +8930,31 @@ function Library:CreateWindow(WindowInfo)
                 end
             end
 
+            function Groupbox:SetVisible(Visible)
+                Groupbox.Visible = Visible
+                BoxHolder.Visible = Visible
+
+                if Visible == true and Library.Searching then
+                    Library:UpdateSearch(Library.SearchText)
+                end
+            end
+
+            function Groupbox:Show()
+                Groupbox:SetVisible(true) 
+            end
+
+            function Groupbox:Hide()
+                Groupbox:SetVisible(false) 
+            end
+
             setmetatable(Groupbox, BaseGroupbox)
 
             Groupbox:Resize()
-            if Info.Visible == false then
-                Groupbox.Visible = false
-                BoxHolder.Visible = false
-            end
             Tab.Groupboxes[Info.Name] = Groupbox
+
+            if Info.Visible == false then
+                Groupbox:Hide()
+            end
 
             return Groupbox
         end
