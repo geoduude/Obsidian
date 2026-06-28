@@ -166,6 +166,7 @@ local Library = {
     IsRobloxFocused = true,
 
     ScreenGui = nil,
+    Window = nil,
     WindowContainer = nil,
 
     SearchText = "",
@@ -232,6 +233,8 @@ local Library = {
         DestructiveColor = Color3.fromRGB(220, 38, 38),
         DarkColor = Color3.new(0, 0, 0),
         WhiteColor = Color3.new(1, 1, 1),
+
+        BackgroundImage = ""
     },
 
     Registry = {},
@@ -311,17 +314,22 @@ local Templates = {
     Window = {
         Title = "No Title",
         Footer = "No Footer",
+
         Position = UDim2.fromOffset(6, 6),
         Size = UDim2.fromOffset(720, 600),
         IconSize = UDim2.fromOffset(30, 30),
+
         AutoShow = true,
         Center = true,
         Resizable = true,
+
         SearchbarSize = UDim2.fromScale(1, 1),
         GlobalSearch = false,
+
         CornerRadius = 4,
         NotifySide = "Right",
         ShowCustomCursor = true,
+
         Font = Enum.Font.Code,
         ToggleKeybind = Enum.KeyCode.RightControl,
         
@@ -343,6 +351,9 @@ local Templates = {
 
         --// Dragging \\--
         CompactWidthActivation = 128,
+
+        --// Background \\--
+        BackgroundImage = ""
     },
     Dialog = {
         Title = "Dialog",
@@ -703,7 +714,7 @@ local function CheckDepbox(Box, Search)
 end
 local function RestoreDepbox(Box)
     for _, ElementInfo in Box.Elements do
-        ElementInfo.Holder.Visible = typeof(ElementInfo.Visible) == "boolean" and ElementInfo.Visible or true
+        ElementInfo.Holder.Visible = ElementInfo.Visible ~= false
 
         if ElementInfo.SubButton then
             ElementInfo.Base.Visible = ElementInfo.Visible
@@ -732,8 +743,11 @@ local function ApplySearchToTab(Tab, Search)
 
     --// Loop through Groupboxes to get Elements Info
     for _, Groupbox in Tab.Groupboxes do
-        local VisibleElements = 0
+        if Groupbox.Visible == false then
+            continue
+        end
 
+        local VisibleElements = 0
         for _, ElementInfo in Groupbox.Elements do
             if ElementInfo.Type == "Divider" then
                 ElementInfo.Holder.Visible = false
@@ -754,6 +768,7 @@ local function ApplySearchToTab(Tab, Search)
                     ElementInfo.SubButton.Base.Visible = false
                 end
                 ElementInfo.Holder.Visible = Visible
+
                 if Visible then
                     VisibleElements += 1
                 end
@@ -865,7 +880,7 @@ local function ResetTab(Tab)
 
     for _, Groupbox in Tab.Groupboxes do
         for _, ElementInfo in Groupbox.Elements do
-            ElementInfo.Holder.Visible = typeof(ElementInfo.Visible) == "boolean" and ElementInfo.Visible or true
+            ElementInfo.Holder.Visible = ElementInfo.Visible ~= false
 
             if ElementInfo.SubButton then
                 ElementInfo.Base.Visible = ElementInfo.Visible
@@ -882,13 +897,13 @@ local function ResetTab(Tab)
         end
 
         Groupbox:Resize()
-        Groupbox.BoxHolder.Visible = true
+        Groupbox.BoxHolder.Visible = Groupbox.Visible ~= false
     end
 
     for _, Tabbox in Tab.Tabboxes do
         for _, SubTab in Tabbox.Tabs do
             for _, ElementInfo in SubTab.Elements do
-                ElementInfo.Holder.Visible = typeof(ElementInfo.Visible) == "boolean" and ElementInfo.Visible or true
+                ElementInfo.Holder.Visible = ElementInfo.Visible ~= false
 
                 if ElementInfo.SubButton then
                     ElementInfo.Base.Visible = ElementInfo.Visible
@@ -4245,6 +4260,18 @@ do
             Parent = Container,
         })
 
+        function Label:Display()
+            if not Label.DoesWrap then
+                return
+            end
+
+            local Width = TextLabel.AbsoluteSize.X
+            if Width <= 0 then return end
+
+            local _, Y = Library:GetTextBounds(Label.Text, TextLabel.FontFace, TextLabel.TextSize, Width)
+            TextLabel.Size = UDim2.new(1, 0, 0, Y + 4)
+        end
+
         function Label:SetVisible(Visible: boolean)
             Label.Visible = Visible
 
@@ -4256,19 +4283,12 @@ do
             Label.Text = Text
             TextLabel.Text = Text
 
-            if Label.DoesWrap then
-                local _, Y =
-                    Library:GetTextBounds(Label.Text, TextLabel.FontFace, TextLabel.TextSize, TextLabel.AbsoluteSize.X)
-                TextLabel.Size = UDim2.new(1, 0, 0, Y + 4)
-            end
-
+            Label:Display()
             Groupbox:Resize()
         end
 
         if Label.DoesWrap then
-            local _, Y =
-                Library:GetTextBounds(Label.Text, TextLabel.FontFace, TextLabel.TextSize, TextLabel.AbsoluteSize.X)
-            TextLabel.Size = UDim2.new(1, 0, 0, Y + 4)
+            Label:Display()
 
             local Last = TextLabel.AbsoluteSize
             TextLabel:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
@@ -4276,11 +4296,9 @@ do
                     return
                 end
 
-                local _, Y =
-                    Library:GetTextBounds(Label.Text, TextLabel.FontFace, TextLabel.TextSize, TextLabel.AbsoluteSize.X)
-                TextLabel.Size = UDim2.new(1, 0, 0, Y + 4)
-
+                Label:Display()
                 Last = TextLabel.AbsoluteSize
+
                 Groupbox:Resize()
             end)
         else
@@ -5693,7 +5711,6 @@ do
             Groupbox:Resize()
         end
 
-
         function Slider:SetText(Text: string)
             Slider.Text = Text
             if SliderLabel then
@@ -5945,7 +5962,7 @@ do
             AnchorPoint = Vector2.new(0, 1),
             BackgroundColor3 = "MainColor",
             Position = UDim2.fromScale(0, 1),
-            Size = UDim2.new(0.99999, 0, 0, 21),
+            Size = UDim2.new(1, 0, 0, 21),
             Text = "",
             TextTransparency = 1,
             ZIndex = 2,
@@ -6180,7 +6197,10 @@ do
             StopDragSelect()
 
             for Button, _ in Buttons do
-                if not Button.Parent then continue end
+                if not (Button and Button.Parent) then
+                    continue
+                end
+
                 Button.Parent:Destroy()
             end
             table.clear(Buttons)
@@ -7588,6 +7608,16 @@ function Library:SetFont(FontFace)
     Library:UpdateColorsUsingRegistry()
 end
 
+function Library:SetBackgroundImage(Image: string | number)
+    assert(typeof(Image) == "string" or typeof(Image) == "number", "Expected string/number got " .. typeof(Image))
+    
+    Library.Scheme.BackgroundImage = Image
+    if Library.Window then
+        Library.Window:SetBackgroundImage(Image)
+    end
+    Library:UpdateColorsUsingRegistry()
+end
+
 function Library:SetNotifySide(Side: string)
     Library.NotifySide = Side
 
@@ -7608,14 +7638,20 @@ function Library:Notify(...)
 
     if typeof(Info) == "table" then
         Data.Title = tostring(Info.Title)
+        Data.TitleColor = Info.TitleColor
+
         Data.Description = tostring(Info.Description)
+        Data.DescriptionColor = Info.DescriptionColor
+
         Data.Time = Info.Time or 5
         Data.SoundId = Info.SoundId
         Data.Steps = Info.Steps
         Data.Persist = Info.Persist
+
         Data.Icon = Info.Icon
         Data.BigIcon = Info.BigIcon
         Data.IconColor = Info.IconColor
+
         Data.Volume = tonumber(Info.Volume) or 3
     else
         Data.Description = tostring(Info)
@@ -7757,6 +7793,7 @@ function Library:Notify(...)
             Position = UDim2.new(0, (Data.Icon and 21 or 0), 0.5, 0),
             Size = UDim2.fromScale(0, 0),
             Text = Data.Title,
+            TextColor3 = Data.TitleColor or "FontColor",
             TextSize = 15,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
@@ -7771,6 +7808,7 @@ function Library:Notify(...)
             BackgroundTransparency = 1,
             Size = UDim2.fromScale(0, 0),
             Text = Data.Description,
+            TextColor3 = Data.DescriptionColor or "FontColor",
             TextSize = 14,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextWrapped = true,
@@ -8026,26 +8064,28 @@ function Library:CreateWindow(WindowInfo)
             Parent = MainFrame,
         })
 
-        if WindowInfo.BackgroundImage then
-            BackgroundImage = New("ImageLabel", {
-                Image = WindowInfo.BackgroundImage,
-                Position = UDim2.fromScale(0, 0),
-                Size = UDim2.fromScale(1, 1),
-                ScaleType = Enum.ScaleType.Stretch,
-                ZIndex = 999,
-                BackgroundTransparency = 1,
-                ImageTransparency = 0.75,
-                Parent = MainFrame,
-            })
+        local BackgroundIcon = Library:GetCustomIcon(WindowInfo.BackgroundImage)
+        BackgroundImage = New("ImageLabel", {
+            Image = BackgroundIcon and BackgroundIcon.Url or "",
+            ImageRectOffset = BackgroundIcon and BackgroundIcon.ImageRectOffset or Vector2.zero,
+            ImageRectSize = BackgroundIcon and BackgroundIcon.ImageRectSize or Vector2.zero,
+            Position = UDim2.fromScale(0, 0),
+            Size = UDim2.fromScale(1, 1),
+            ScaleType = Enum.ScaleType.Stretch,
+            ZIndex = 999,
+            BackgroundTransparency = 1,
+            ImageTransparency = 0.75,
+            Visible = BackgroundIcon ~= nil,
+            Parent = MainFrame,
+        })
 
-            table.insert(
-                Library.Corners,
-                New("UICorner", {
-                    CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
-                    Parent = BackgroundImage,
-                })
-            )
-        end
+        table.insert(
+            Library.Corners,
+            New("UICorner", {
+                CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
+                Parent = BackgroundImage,
+            })
+        )
 
         if WindowInfo.Center then
             MainFrame.Position = UDim2.new(0.5, -MainFrame.Size.X.Offset / 2, 0.5, -MainFrame.Size.Y.Offset / 2)
@@ -8358,20 +8398,28 @@ function Library:CreateWindow(WindowInfo)
         WindowInfo.Title = title
     end
 
-    if WindowInfo.BackgroundImage then
-        function Window:SetBackgroundImage(Image: string)
-            assert(typeof(Image) == "string", "Expected string for Image got: " .. typeof(Image))
-    
-            BackgroundImage.Image = Image
-            WindowInfo.BackgroundImage = Image
+    function Window:SetBackgroundImage(Image: string)
+        local BackgroundIcon = Image and Library:GetCustomIcon(Image)
+        if BackgroundIcon then
+            BackgroundImage.Image = BackgroundIcon.Url
+            BackgroundImage.ImageRectOffset = BackgroundIcon.ImageRectOffset
+            BackgroundImage.ImageRectSize = BackgroundIcon.ImageRectSize
+            BackgroundImage.Visible = true
+        else
+            BackgroundImage.Image = ""
+            BackgroundImage.ImageRectOffset = Vector2.zero
+            BackgroundImage.ImageRectSize = Vector2.zero
+            BackgroundImage.Visible = false
         end
+
+        WindowInfo.BackgroundImage = Image
     end
 
-    function Window:SetFooter(footer: string)
-        assert(typeof(footer) == "string", "Expected string for footer got: " .. typeof(footer))
+    function Window:SetFooter(Footer: string)
+        assert(typeof(Footer) == "string", "Expected string for footer got: " .. typeof(Footer))
 
-        FooterLabel.Text = footer
-        WindowInfo.Footer = footer
+        FooterLabel.Text = Footer
+        WindowInfo.Footer = Footer
     end
 
     function Window:SetCornerRadius(Radius: number)
@@ -8379,7 +8427,7 @@ function Library:CreateWindow(WindowInfo)
         Radius = math.min(Radius, 20)
 
         local RadiusHalf = UDim.new(0, Radius / 2)
-        local RadiusUDim = UDim.new(0, Radius / 2)
+        local RadiusUDim = UDim.new(0, Radius)
         local HalfCurrent = Library.CornerRadius / 2
 
         for _, UICorner in Library.Corners do
@@ -8850,168 +8898,14 @@ function Library:CreateWindow(WindowInfo)
             Tab:RefreshSides()
         end
 
-        function Tab:AddGroupbox(Info)
+        local function AddTabbox(self, Info)
+            local ParentObj = self
+
             local BoxHolder = New("Frame", {
                 AutomaticSize = Enum.AutomaticSize.Y,
                 BackgroundTransparency = 1,
                 Size = UDim2.fromScale(1, 0),
-                Parent = Info.Side == 1 and TabLeft or TabRight,
-            })
-            New("UIListLayout", {
-                Padding = UDim.new(0, 6),
-                Parent = BoxHolder,
-            })
-            New("UIPadding", {
-                PaddingBottom = UDim.new(0, 4),
-                PaddingTop = UDim.new(0, 4),
-                Parent = BoxHolder,
-            })
-
-            local GroupboxHolder
-            local GroupboxLabel
-
-            local GroupboxContainer
-            local GroupboxList
-
-            do
-                GroupboxHolder = New("Frame", {
-                    BackgroundColor3 = "BackgroundColor",
-                    Size = UDim2.fromScale(1, 0),
-                    Parent = BoxHolder,
-                })
-                table.insert(
-                    Library.Corners,
-                    New("UICorner", {
-                        CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
-                        Parent = GroupboxHolder,
-                    })
-                )
-                Library:AddOutline(GroupboxHolder)
-
-                Library:MakeLine(GroupboxHolder, {
-                    Position = UDim2.fromOffset(0, 34),
-                    Size = UDim2.new(1, 0, 0, 1),
-                })
-
-                local BoxIcon = Library:GetCustomIcon(Info.IconName)
-                if BoxIcon then
-                    New("ImageLabel", {
-                        Image = BoxIcon.Url,
-                        ImageColor3 = BoxIcon.Custom and "WhiteColor" or "AccentColor",
-                        ImageRectOffset = BoxIcon.ImageRectOffset,
-                        ImageRectSize = BoxIcon.ImageRectSize,
-                        Position = UDim2.fromOffset(6, 6),
-                        Size = UDim2.fromOffset(22, 22),
-                        Parent = GroupboxHolder,
-                    })
-                end
-
-                GroupboxLabel = New("TextLabel", {
-                    BackgroundTransparency = 1,
-                    Position = UDim2.fromOffset(BoxIcon and 24 or 0, 0),
-                    Size = UDim2.new(1, 0, 0, 34),
-                    Text = Info.Name,
-                    TextSize = 15,
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    Parent = GroupboxHolder,
-                })
-                New("UIPadding", {
-                    PaddingLeft = UDim.new(0, 12),
-                    PaddingRight = UDim.new(0, 12),
-                    Parent = GroupboxLabel,
-                })
-
-                GroupboxContainer = New("Frame", {
-                    BackgroundTransparency = 1,
-                    Position = UDim2.fromOffset(0, 35),
-                    Size = UDim2.new(1, 0, 1, -35),
-                    Parent = GroupboxHolder,
-                })
-
-                GroupboxList = New("UIListLayout", {
-                    Padding = UDim.new(0, 8),
-                    Parent = GroupboxContainer,
-                })
-                New("UIPadding", {
-                    PaddingBottom = UDim.new(0, 7),
-                    PaddingLeft = UDim.new(0, 7),
-                    PaddingRight = UDim.new(0, 7),
-                    PaddingTop = UDim.new(0, 7),
-                    Parent = GroupboxContainer,
-                })
-            end
-
-            local Groupbox = {
-                Connections = {},
-                Destroyed = false,
-
-                BoxHolder = BoxHolder,
-                Holder = GroupboxHolder,
-                Container = GroupboxContainer,
-
-                Tab = Tab,
-                DependencyBoxes = {},
-                Elements = {},
-            }
-
-            function Groupbox:Resize()
-                GroupboxHolder.Size = UDim2.new(1, 0, 0, (GroupboxList.AbsoluteContentSize.Y / Library.DPIScale) + 49)
-            end
-
-            function Groupbox:Destroy()
-                Groupbox.Destroyed = true
-
-                if Groupbox.Connections then
-                    for _, Connection in Groupbox.Connections do
-                        Connection:Disconnect()
-                    end
-                end
-
-                for _, Element in Groupbox.Elements do
-                    if Element.Destroy then
-                        Element:Destroy()
-                    end
-                end
-                table.clear(Groupbox.Elements)
-
-                for _, SubDepbox in Groupbox.DependencyBoxes do
-                    if SubDepbox.Destroy then
-                        SubDepbox:Destroy()
-                    end
-                end
-                table.clear(Groupbox.DependencyBoxes)
-
-                if GroupboxHolder then 
-                    GroupboxHolder:Destroy() 
-                end
-
-                if BoxHolder then
-                    BoxHolder:Destroy()
-                end
-            end
-
-            setmetatable(Groupbox, BaseGroupbox)
-
-            Groupbox:Resize()
-            Tab.Groupboxes[Info.Name] = Groupbox
-
-            return Groupbox
-        end
-
-        function Tab:AddLeftGroupbox(Name, IconName)
-            return Tab:AddGroupbox({ Side = 1, Name = Name, IconName = IconName })
-        end
-
-        function Tab:AddRightGroupbox(Name, IconName)
-            return Tab:AddGroupbox({ Side = 2, Name = Name, IconName = IconName })
-        end
-
-        function Tab:AddTabbox(Info)
-            local BoxHolder = New("Frame", {
-                AutomaticSize = Enum.AutomaticSize.Y,
-                BackgroundTransparency = 1,
-                Size = UDim2.fromScale(1, 0),
-                Parent = Info.Side == 1 and TabLeft or TabRight,
+                Parent = if ParentObj.Type == "Groupbox" then ParentObj.Container else (Info.Side == 1 and TabLeft or TabRight),
             })
             New("UIListLayout", {
                 Padding = UDim.new(0, 6),
@@ -9053,7 +8947,10 @@ function Library:CreateWindow(WindowInfo)
                 })
             end
 
-            local TotalButtons, TotalTabs = 0, 1
+            local TotalTabs = 0
+            local FirstTab
+            local LastTab
+
             local Tabbox = {
                 Connections = {},
                 Destroyed = false,
@@ -9072,12 +8969,16 @@ function Library:CreateWindow(WindowInfo)
             end
 
             function Tabbox:AddTab(Name, IconName)
+                TotalTabs = TotalTabs + 1
                 local TabIndex = TotalTabs
 
-                TotalButtons = TotalButtons + 1
-                TotalTabs = TotalTabs + 1
+                LastTab = TabIndex
+                if not FirstTab then
+                    FirstTab = TabIndex
+                end
 
-                local BoxIcon = Library:GetCustomIcon(IconName)
+                local IsNameEmpty = Name == nil or Trim(tostring(Name)) == ""
+                local TabStoringIndex = IsNameEmpty and tostring(TabIndex) or Name
 
                 local Button = New("TextButton", {
                     BackgroundColor3 = "MainColor",
@@ -9088,8 +8989,8 @@ function Library:CreateWindow(WindowInfo)
                 })
 
                 local ButtonCorner = New("UICorner", {
-                    TopLeftRadius = UDim.new(0, WindowInfo.CornerRadius / 2),
-                    TopRightRadius = UDim.new(0, WindowInfo.CornerRadius / 2),
+                    TopLeftRadius = UDim.new(0, WindowInfo.CornerRadius),
+                    TopRightRadius = UDim.new(0, WindowInfo.CornerRadius),
                     BottomRightRadius = UDim.new(0, 0),
                     BottomLeftRadius = UDim.new(0, 0),
                     Parent = Button,
@@ -9111,7 +9012,8 @@ function Library:CreateWindow(WindowInfo)
                     Parent = ButtonContent,
                 })
 
-                local ButtonIcon
+                local ButtonIcon                
+                local BoxIcon = Library:GetCustomIcon(IconName)
                 if BoxIcon then
                     ButtonIcon = New("ImageLabel", {
                         Image = BoxIcon.Url,
@@ -9119,20 +9021,23 @@ function Library:CreateWindow(WindowInfo)
                         ImageRectOffset = BoxIcon.ImageRectOffset,
                         ImageRectSize = BoxIcon.ImageRectSize,
                         ImageTransparency = 0.5,
-                        Size = UDim2.fromOffset(16, 16),
+                        Size = IsNameEmpty and UDim2.fromOffset(16, 16) or UDim2.fromOffset(18, 18),
                         Parent = ButtonContent,
                     })
                 end
 
-                local ButtonLabel = New("TextLabel", {
-                    AutomaticSize = Enum.AutomaticSize.X,
-                    BackgroundTransparency = 1,
-                    Size = UDim2.fromOffset(0, 16),
-                    Text = Name,
-                    TextSize = 15,
-                    TextTransparency = 0.5,
-                    Parent = ButtonContent,
-                })
+                local ButtonLabel
+                if not IsNameEmpty then
+                    ButtonLabel = New("TextLabel", {
+                        AutomaticSize = Enum.AutomaticSize.X,
+                        BackgroundTransparency = 1,
+                        Size = UDim2.fromOffset(0, 16),
+                        Text = Name,
+                        TextSize = 15,
+                        TextTransparency = 0.5,
+                        Parent = ButtonContent,
+                    })
+                end
 
                 local Line = Library:MakeLine(Button, {
                     AnchorPoint = Vector2.new(0, 1),
@@ -9179,10 +9084,13 @@ function Library:CreateWindow(WindowInfo)
 
                     Button.BackgroundTransparency = 1
 
-                    ButtonLabel.TextTransparency = 0
+                    if ButtonLabel then
+                        ButtonLabel.TextTransparency = 0
+                    end
                     if ButtonIcon then
                         ButtonIcon.ImageTransparency = 0
                     end
+
                     Line.Visible = false
 
                     Container.Visible = true
@@ -9194,7 +9102,9 @@ function Library:CreateWindow(WindowInfo)
                 function Tab:Hide()
                     Button.BackgroundTransparency = 0
 
-                    ButtonLabel.TextTransparency = 0.5
+                    if ButtonLabel then
+                        ButtonLabel.TextTransparency = 0.5
+                    end
                     if ButtonIcon then
                         ButtonIcon.ImageTransparency = 0.5
                     end
@@ -9210,13 +9120,16 @@ function Library:CreateWindow(WindowInfo)
                     end
 
                     TabboxHolder.Size = UDim2.new(1, 0, 0, (List.AbsoluteContentSize.Y / Library.DPIScale) + 49)
+                    if ParentObj.Type == "Groupbox" then
+                        ParentObj:Resize()
+                    end
                 end
 
                 function Tab:UpdateCorners()
-                    local Radius = WindowInfo.CornerRadius / 2
+                    local Radius = WindowInfo.CornerRadius
 
-                    ButtonCorner.TopLeftRadius = UDim.new(0, TabIndex == 1 and Radius or 0)
-                    ButtonCorner.TopRightRadius = UDim.new(0, TabIndex == TotalButtons and Radius or 0)
+                    ButtonCorner.TopLeftRadius = UDim.new(0, TabIndex == FirstTab and Radius or 0)
+                    ButtonCorner.TopRightRadius = UDim.new(0, TabIndex == LastTab and Radius or 0)
                 end
 
                 function Tab:Destroy()
@@ -9258,10 +9171,10 @@ function Library:CreateWindow(WindowInfo)
 
                 setmetatable(Tab, BaseGroupbox)
 
-                Tabbox.Tabs[Name] = Tab
+                Tabbox.Tabs[TabStoringIndex] = Tab
                 Tabbox:UpdateCorners()
 
-                return Tab
+                return Tab, TabStoringIndex
             end
 
             function Tabbox:Destroy()
@@ -9297,12 +9210,239 @@ function Library:CreateWindow(WindowInfo)
             return Tabbox
         end
 
+        Tab.AddTabbox = AddTabbox
+
         function Tab:AddLeftTabbox(Name)
             return Tab:AddTabbox({ Side = 1, Name = Name })
         end
 
         function Tab:AddRightTabbox(Name)
             return Tab:AddTabbox({ Side = 2, Name = Name })
+        end
+
+        function Tab:AddGroupbox(Info)
+            local BoxHolder = New("Frame", {
+                AutomaticSize = Enum.AutomaticSize.Y,
+                BackgroundTransparency = 1,
+                Size = UDim2.fromScale(1, 0),
+                Parent = Info.Side == 1 and TabLeft or TabRight,
+            })
+            New("UIListLayout", {
+                Padding = UDim.new(0, 6),
+                Parent = BoxHolder,
+            })
+            New("UIPadding", {
+                PaddingBottom = UDim.new(0, 4),
+                PaddingTop = UDim.new(0, 4),
+                Parent = BoxHolder,
+            })
+
+            local GroupboxHolder
+            local GroupboxLabel
+
+            local GroupboxContainer
+            local GroupboxList
+
+            local GroupboxCollapseArrow
+            local GroupboxLine
+
+            do
+                GroupboxHolder = New("Frame", {
+                    BackgroundColor3 = "BackgroundColor",
+                    Size = UDim2.fromScale(1, 0),
+                    Parent = BoxHolder,
+                })
+                table.insert(
+                    Library.Corners,
+                    New("UICorner", {
+                        CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
+                        Parent = GroupboxHolder,
+                    })
+                )
+                Library:AddOutline(GroupboxHolder)
+
+                GroupboxLine = Library:MakeLine(GroupboxHolder, {
+                    Position = UDim2.fromOffset(0, 34),
+                    Size = UDim2.new(1, 0, 0, 1),
+                })
+
+                local BoxIcon = Library:GetCustomIcon(Info.IconName)
+                if BoxIcon then
+                    New("ImageLabel", {
+                        Image = BoxIcon.Url,
+                        ImageColor3 = BoxIcon.Custom and "WhiteColor" or "AccentColor",
+                        ImageRectOffset = BoxIcon.ImageRectOffset,
+                        ImageRectSize = BoxIcon.ImageRectSize,
+                        Position = UDim2.fromOffset(6, 6),
+                        Size = UDim2.fromOffset(22, 22),
+                        Parent = GroupboxHolder,
+                    })
+                end
+
+                GroupboxLabel = New("TextLabel", {
+                    BackgroundTransparency = 1,
+                    Position = UDim2.fromOffset(BoxIcon and 24 or 0, 0),
+                    Size = UDim2.new(1, 0, 0, 34),
+                    Text = Info.Name,
+                    TextSize = 15,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Parent = GroupboxHolder,
+                })
+                New("UIPadding", {
+                    PaddingLeft = UDim.new(0, 12),
+                    PaddingRight = UDim.new(0, 12),
+                    Parent = GroupboxLabel,
+                })
+
+                if Info.DisableCollapsing ~= true then
+                    GroupboxCollapseArrow = New("ImageButton", {
+                        Image = ArrowIcon and ArrowIcon.Url or "",
+                        ImageColor3 = "WhiteColor",
+                        ImageRectOffset = ArrowIcon and ArrowIcon.ImageRectOffset or Vector2.zero,
+                        ImageRectSize = ArrowIcon and ArrowIcon.ImageRectSize or Vector2.zero,
+                        BackgroundTransparency = 1,
+                        Rotation = 180,
+                        Position = UDim2.new(1, -(22 + 6), 0, 6),
+                        Size = UDim2.fromOffset(22, 22),
+                        Parent = GroupboxHolder,
+                    })
+                end
+
+                GroupboxContainer = New("Frame", {
+                    BackgroundTransparency = 1,
+                    Position = UDim2.fromOffset(0, 35),
+                    Size = UDim2.new(1, 0, 1, -35),
+                    Parent = GroupboxHolder,
+                })
+
+                GroupboxList = New("UIListLayout", {
+                    Padding = UDim.new(0, 8),
+                    Parent = GroupboxContainer,
+                })
+                New("UIPadding", {
+                    PaddingBottom = UDim.new(0, 7),
+                    PaddingLeft = UDim.new(0, 7),
+                    PaddingRight = UDim.new(0, 7),
+                    PaddingTop = UDim.new(0, 7),
+                    Parent = GroupboxContainer,
+                })
+            end
+
+            local Groupbox = {
+                Type = "Groupbox",
+
+                Connections = {},
+                Destroyed = false,
+
+                Visible = true,
+                Collapsed = false,
+
+                BoxHolder = BoxHolder,
+                Holder = GroupboxHolder,
+                Container = GroupboxContainer,
+
+                Tab = Tab,
+                DependencyBoxes = {},
+                Elements = {}
+            }
+
+            function Groupbox:Resize()
+                GroupboxHolder.Size = UDim2.new(1, 0, 0, if Groupbox.Collapsed then 34 else (GroupboxList.AbsoluteContentSize.Y / Library.DPIScale) + 49)
+                GroupboxLine.Visible = not Groupbox.Collapsed
+            end
+
+            function Groupbox:SetCollapsed(Collapsed: boolean)
+                if Info.DisableCollapsing == true then return end
+                Groupbox.Collapsed = Collapsed
+
+                GroupboxContainer.Visible = not Collapsed
+                GroupboxCollapseArrow.Rotation = if Collapsed then 0 else 180
+                Groupbox:Resize()
+            end
+
+            function Groupbox:ToggleCollapsed()
+                if Info.DisableCollapsing == true then return end
+                Groupbox:SetCollapsed(not Groupbox.Collapsed)
+            end
+
+            function Groupbox:Destroy()
+                Groupbox.Destroyed = true
+
+                if Groupbox.Connections then
+                    for _, Connection in Groupbox.Connections do
+                        Connection:Disconnect()
+                    end
+                end
+
+                for _, Element in Groupbox.Elements do
+                    if Element.Destroy then
+                        Element:Destroy()
+                    end
+                end
+                table.clear(Groupbox.Elements)
+
+                for _, SubDepbox in Groupbox.DependencyBoxes do
+                    if SubDepbox.Destroy then
+                        SubDepbox:Destroy()
+                    end
+                end
+                table.clear(Groupbox.DependencyBoxes)
+
+                if GroupboxHolder then 
+                    GroupboxHolder:Destroy() 
+                end
+
+                if BoxHolder then
+                    BoxHolder:Destroy()
+                end
+            end
+
+            function Groupbox:SetVisible(Visible: boolean)
+                Groupbox.Visible = Visible
+                BoxHolder.Visible = Visible
+
+                if Visible == true and Library.Searching then
+                    Library:UpdateSearch(Library.SearchText)
+                end
+            end
+
+            function Groupbox:Show()
+                Groupbox:SetVisible(true) 
+            end
+
+            function Groupbox:Hide()
+                Groupbox:SetVisible(false) 
+            end
+
+            if Info.DisableCollapsing ~= true then
+                GroupboxCollapseArrow.MouseButton1Click:Connect(function()
+                    Groupbox:ToggleCollapsed()
+                end)
+            end
+
+            Groupbox.AddTabbox = AddTabbox
+            setmetatable(Groupbox, BaseGroupbox)
+
+            Groupbox:Resize()
+            Tab.Groupboxes[Info.Name] = Groupbox
+
+            if Info.Visible == false then
+                Groupbox:Hide()
+            end
+
+            if Info.DisableCollapsing ~= true and Info.Collapsed == true then
+                Groupbox:SetCollapsed(true)
+            end
+
+            return Groupbox
+        end
+
+        function Tab:AddLeftGroupbox(Name, IconName, Visible, Collapsed)
+            return Tab:AddGroupbox({ Side = 1, Name = Name, IconName = IconName, Visible = Visible, Collapsed = Collapsed })
+        end
+
+        function Tab:AddRightGroupbox(Name, IconName, Visible, Collapsed)
+            return Tab:AddGroupbox({ Side = 2, Name = Name, IconName = IconName, Visible = Visible, Collapsed = Collapsed })
         end
 
         function Tab:Hover(Hovering)
@@ -10410,6 +10550,7 @@ function Library:CreateWindow(WindowInfo)
         Library.IsRobloxFocused = false
     end))
 
+    Library.Window = Window
     return Window
 end
 

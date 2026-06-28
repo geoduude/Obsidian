@@ -1,3 +1,25 @@
+## 28.06.2026
+
+```diff
+[features]
++ Groupbox:SetVisible(Visible: boolean), Groupbox:Show(), Groupbox:Hide()
++ Groupbox:AddTabbox()
++ Collapse Groupbox arrow (disable with DisableCollapsing option)
++ TitleColor, DescriptionColor options for Library:Notify({ ... })
++ Library.Scheme.BackgroundImage and "Background Image" option in Theme Manager
++ Library.Window
+
+[changes]
++ Tabbox:AddTab() now returns Tab and TabStoringIndex
++ Window BackgroundImage can now be set even when it was previously not set during creation
+
+[fixes]
++ Fixed searching restoring hidden elements each time
++ Fixed attempt to index nil with 'Destroy' errors in Dropdown:BuildDropdownList()
++ Fixed rounded corners with Tab buttons inside Tabbox
++ Fixed Tab button spacing when it doesn't have name
+```
+
 ## 26.06.2026
 
 ```diff
@@ -7,6 +29,7 @@
 + KeyPicker for buttons (Only works with 'Press' mode, Callback to the button will have an passed value FromKeyPicker which will be true if it was activated by the key picker)
 + Icon and IconPosition parameters to Library:AddDraggableLabel() and Library:AddDraggableButton()
 + Slider.AllowRightClickInput (right click/double tap to open text input for specific value)
++ Library:AddDraggableImageButton()
 
 [changes]
 + Implemented individual rounded corners for certain elements (dropdowns, right-click context menus)
