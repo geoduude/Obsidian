@@ -732,6 +732,9 @@ local function ApplySearchToTab(Tab, Search)
 
     --// Loop through Groupboxes to get Elements Info
     for _, Groupbox in Tab.Groupboxes do
+        if Groupbox.Visible == false then
+            continue
+        end
         local VisibleElements = 0
 
         for _, ElementInfo in Groupbox.Elements do
@@ -882,7 +885,7 @@ local function ResetTab(Tab)
         end
 
         Groupbox:Resize()
-        Groupbox.BoxHolder.Visible = true
+        Groupbox.BoxHolder.Visible = Groupbox.Visible ~= false
     end
 
     for _, Tabbox in Tab.Tabboxes do
@@ -8887,9 +8890,11 @@ function Library:CreateWindow(WindowInfo)
                 Tab = Tab,
                 DependencyBoxes = {},
                 Elements = {},
+                Visible = true,
             }
 
             function Groupbox:SetVisible(Visible)
+                self.Visible = Visible
                 self.BoxHolder.Visible = Visible
             end
 
@@ -8933,6 +8938,7 @@ function Library:CreateWindow(WindowInfo)
 
             Groupbox:Resize()
             if Info.Visible == false then
+                Groupbox.Visible = false
                 BoxHolder.Visible = false
             end
             Tab.Groupboxes[Info.Name] = Groupbox
