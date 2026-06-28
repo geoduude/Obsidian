@@ -10345,6 +10345,7 @@ function Library:CreateWindow(WindowInfo)
         Library.IsRobloxFocused = false
     end))
 
+    Library.Window = Window
     return Window
 end
 
