@@ -3,11 +3,21 @@
 ```diff
 [features]
 + Groupbox:SetVisible(Visible: boolean), Groupbox:Show(), Groupbox:Hide()
++ Groupbox:AddTabbox()
++ Collapse Groupbox arrow (disable with DisableCollapsing option)
++ TitleColor, DescriptionColor options for Library:Notify({ ... })
++ Library.Scheme.BackgroundImage and "Background Image" option in Theme Manager
++ Library.Window
+
+[changes]
++ Tabbox:AddTab() now returns Tab and TabStoringIndex
++ Window BackgroundImage can now be set even when it was previously not set during creation
 
 [fixes]
-+ Fixed SetCornerRadius skipping zero-offset and full-radius corners
 + Fixed searching restoring hidden elements each time
 + Fixed attempt to index nil with 'Destroy' errors in Dropdown:BuildDropdownList()
++ Fixed rounded corners with Tab buttons inside Tabbox
++ Fixed Tab button spacing when it doesn't have name
 ```
 
 ## 26.06.2026
