@@ -6159,12 +6159,28 @@ do
             return ReturnCount == true and GetTableSize(Table) or Table
         end
 
+        local DragSelecting = false
+        local DragSelectState = false
+        local DragInputEndedConn = nil
+
+        local function StopDragSelect()
+            DragSelecting = false
+            DragSelectState = false
+            if DragInputEndedConn then
+                DragInputEndedConn:Disconnect()
+                DragInputEndedConn = nil
+            end
+        end
+
         local Buttons = {}
         function Dropdown:BuildDropdownList()
             local Values = Dropdown.Values
             local DisabledValues = Dropdown.DisabledValues
 
+            StopDragSelect()
+
             for Button, _ in Buttons do
+                if not Button.Parent then continue end
                 Button.Parent:Destroy()
             end
             table.clear(Buttons)
@@ -6256,6 +6272,8 @@ do
 
                 if not IsDisabled then
                     Button.MouseButton1Click:Connect(function()
+                        if DragSelecting then return end
+
                         local Try = not Selected
 
                         if not (Dropdown:GetActiveValues(true) == 1 and not Try and not Info.AllowNull) then
@@ -6278,6 +6296,53 @@ do
                         Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
                         Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
                     end)
+
+                    if Info.Multi then
+                        Button.InputBegan:Connect(function(Input)
+                            if Input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+
+                            DragSelectState = not Selected
+                            DragSelecting = true
+
+                            local Try = DragSelectState
+                            if not (Dropdown:GetActiveValues(true) == 1 and not Try and not Info.AllowNull) then
+                                Selected = Try
+                                Dropdown.Value[Value] = Selected and true or nil
+                                for _, OtherButton in Buttons do
+                                    OtherButton:UpdateButton()
+                                end
+                            end
+                            Table:UpdateButton()
+                            Dropdown:Display()
+
+                            if DragInputEndedConn then
+                                DragInputEndedConn:Disconnect()
+                            end
+                            DragInputEndedConn = UserInputService.InputEnded:Connect(function(EndInput)
+                                if EndInput.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+                                Library:UpdateDependencyBoxes()
+                                Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
+                                Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
+                                StopDragSelect()
+                            end)
+                            table.insert(Dropdown.Connections, DragInputEndedConn)
+                        end)
+
+                        Button.MouseEnter:Connect(function()
+                            if not DragSelecting then return end
+
+                            local Try = DragSelectState
+                            if not (Dropdown:GetActiveValues(true) == 1 and not Try and not Info.AllowNull) then
+                                Selected = Try
+                                Dropdown.Value[Value] = Selected and true or nil
+                                for _, OtherButton in Buttons do
+                                    OtherButton:UpdateButton()
+                                end
+                            end
+                            Table:UpdateButton()
+                            Dropdown:Display()
+                        end)
+                    end
                 end
 
                 Table:UpdateButton()
