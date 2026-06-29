@@ -1,5 +1,5 @@
 --!strict
--- Last updated: 2026-06-26
+-- Last updated: 2026-06-28
 -- Luau type definitions for the Obsidian UI Library
 
 --// Helper & Configuration Types
@@ -14,6 +14,7 @@ export type Scheme = {
     DestructiveColor: Color3,
     DarkColor: Color3,
     WhiteColor: Color3,
+    BackgroundImage: string,
 }
 
 export type Icon = {
@@ -48,11 +49,14 @@ export type Notification = {
     Description: string,
     Time: number | Instance,
     SoundId: string | number?,
+    Volume: number?,
     Steps: number?,
     Persist: boolean?,
     Icon: string?,
     BigIcon: string?,
     IconColor: Color3 | string?,
+    TitleColor: Color3?,
+    DescriptionColor: Color3?,
     Destroyed: boolean,
 
     Resize: (self: Notification) -> (),
@@ -99,7 +103,7 @@ export type DraggableImageButton = {
 --// Element Creation Info Types
 export type ButtonInfo = {
     Text: string,
-    Func: () -> (),
+    Func: (FromKeyPicker: boolean?) -> (),
     DoubleClick: boolean?,
     Tooltip: string?,
     DisabledTooltip: string?,
@@ -275,6 +279,7 @@ export type KeyPicker = {
     DoClick: (self: KeyPicker) -> (),
     SetValue: (self: KeyPicker, Data: { string }) -> (),
     SetText: (self: KeyPicker, Text: string) -> (),
+    Destroy: (self: KeyPicker) -> (),
 }
 
 export type ColorPicker = {
@@ -296,6 +301,7 @@ export type ColorPicker = {
     OnChanged: (self: ColorPicker, Func: (Value: Color3) -> ()) -> (),
     SetValue: (self: ColorPicker, HSV: { number }, Transparency: number?) -> (),
     SetValueRGB: (self: ColorPicker, Color: Color3, Transparency: number?) -> (),
+    Destroy: (self: ColorPicker) -> (),
 }
 
 export type Addon = KeyPicker | ColorPicker
@@ -317,11 +323,12 @@ export type Label = {
     -- From BaseAddons
     AddKeyPicker: (self: Label, Idx: string, Info: KeyPickerInfo) -> Label,
     AddColorPicker: (self: Label, Idx: string, Info: ColorPickerInfo) -> Label,
+    Destroy: (self: Label) -> (),
 }
 
 export type Button = {
     Text: string,
-    Func: () -> (),
+    Func: (FromKeyPicker: boolean?) -> (),
     DoubleClick: boolean?,
     Tooltip: string?,
     DisabledTooltip: string?,
@@ -341,11 +348,12 @@ export type Button = {
     SetDisabled: (self: Button, Disabled: boolean) -> (),
     SetVisible: (self: Button, Visible: boolean) -> (),
     SetText: (self: Button, Text: string) -> (),
+    Destroy: (self: Button) -> (),
 }
 
 export type SubButton = {
     Text: string,
-    Func: () -> (),
+    Func: (FromKeyPicker: boolean?) -> (),
     DoubleClick: boolean?,
     Tooltip: string?,
     DisabledTooltip: string?,
@@ -362,6 +370,7 @@ export type SubButton = {
     SetDisabled: (self: SubButton, Disabled: boolean) -> (),
     SetVisible: (self: SubButton, Visible: boolean) -> (),
     SetText: (self: SubButton, Text: string) -> (),
+    Destroy: (self: SubButton) -> (),
 }
 
 export type Toggle = {
@@ -392,6 +401,7 @@ export type Toggle = {
     -- From BaseAddons
     AddKeyPicker: (self: Toggle, Idx: string, Info: KeyPickerInfo) -> Toggle,
     AddColorPicker: (self: Toggle, Idx: string, Info: ColorPickerInfo) -> Toggle,
+    Destroy: (self: Toggle) -> (),
 }
 
 export type Input = {
@@ -419,6 +429,7 @@ export type Input = {
     SetDisabled: (self: Input, Disabled: boolean) -> (),
     SetVisible: (self: Input, Visible: boolean) -> (),
     SetText: (self: Input, Text: string) -> (),
+    Destroy: (self: Input) -> (),
 }
 
 export type Slider = {
@@ -453,6 +464,7 @@ export type Slider = {
     SetText: (self: Slider, Text: string) -> (),
     SetPrefix: (self: Slider, Prefix: string) -> (),
     SetSuffix: (self: Slider, Suffix: string) -> (),
+    Destroy: (self: Slider) -> (),
 }
 
 export type Dropdown = {
@@ -488,6 +500,7 @@ export type Dropdown = {
     SetDisabled: (self: Dropdown, Disabled: boolean) -> (),
     SetVisible: (self: Dropdown, Visible: boolean) -> (),
     SetText: (self: Dropdown, Text: string) -> (),
+    Destroy: (self: Dropdown) -> (),
 }
 
 export type Viewport = {
@@ -505,6 +518,7 @@ export type Viewport = {
     SetCamera: (self: Viewport, Camera: Camera) -> (),
     SetInteractive: (self: Viewport, Interactive: boolean) -> (),
     SetVisible: (self: Viewport, Visible: boolean) -> (),
+    Destroy: (self: Viewport) -> (),
 }
 
 export type Image = {
@@ -527,6 +541,7 @@ export type Image = {
     SetScaleType: (self: Image, ScaleType: Enum.ScaleType) -> (),
     SetTransparency: (self: Image, Transparency: number) -> (),
     SetVisible: (self: Image, Visible: boolean) -> (),
+    Destroy: (self: Image) -> (),
 }
 
 export type Video = {
@@ -548,6 +563,7 @@ export type Video = {
     Play: (self: Video) -> (),
     Pause: (self: Video) -> (),
     SetVisible: (self: Video, Visible: boolean) -> (),
+    Destroy: (self: Video) -> (),
 }
 
 export type UIPassthrough = {
@@ -560,11 +576,13 @@ export type UIPassthrough = {
     SetHeight: (self: UIPassthrough, Height: number) -> (),
     SetInstance: (self: UIPassthrough, Instance: GuiBase2d) -> (),
     SetVisible: (self: UIPassthrough, Visible: boolean) -> (),
+    Destroy: (self: UIPassthrough) -> (),
 }
 
 export type Divider = {
     Type: "Divider",
     Holder: Frame,
+    Destroy: (self: Divider) -> (),
 }
 
 export type Element =
@@ -612,6 +630,10 @@ export type BaseGroupbox = {
     AddUIPassthrough: (self: Groupbox, Idx: string, Info: UIPassthroughInfo) -> UIPassthrough,
     AddDependencyBox: (self: Groupbox) -> DependencyBox,
     AddDependencyGroupbox: (self: Groupbox) -> DependencyGroupbox,
+    AddTabbox: (self: Groupbox, Info: { Name: string?, IconName: string? } | string) -> Tabbox,
+    SetVisible: (self: Groupbox, Visible: boolean) -> (),
+    Show: (self: Groupbox) -> (),
+    Hide: (self: Groupbox) -> (),
 }
 
 export type DependencyBox = BaseGroupbox & {
@@ -671,7 +693,7 @@ export type Tabbox = {
     Holder: Frame,
     Tabs: { [string]: SubTab },
 
-    AddTab: (self: Tabbox, Name: string, IconName: string?) -> SubTab,
+    AddTab: (self: Tabbox, Name: string, IconName: string?) -> (SubTab, number),
 }
 
 export type Tab = {
@@ -686,9 +708,9 @@ export type Tab = {
         Info: { IsNormal: boolean?, LockSize: boolean?, Visible: boolean?, Title: string?, Text: string? }
     ) -> (),
     Resize: (self: Tab, ResizeWarningBox: boolean?) -> (),
-    AddGroupbox: (self: Tab, Info: { Side: number, Name: string, IconName: string? }) -> Groupbox,
-    AddLeftGroupbox: (self: Tab, Name: string, IconName: string?) -> Groupbox,
-    AddRightGroupbox: (self: Tab, Name: string, IconName: string?) -> Groupbox,
+    AddGroupbox: (self: Tab, Info: { Side: number, Name: string, IconName: string?, DisableCollapsing: boolean? }) -> Groupbox,
+    AddLeftGroupbox: (self: Tab, Name: string, IconName: string?, DisableCollapsing: boolean?) -> Groupbox,
+    AddRightGroupbox: (self: Tab, Name: string, IconName: string?, DisableCollapsing: boolean?) -> Groupbox,
     AddTabbox: (self: Tab, Info: { Side: number, Name: string? }) -> Tabbox,
     AddLeftTabbox: (self: Tab, Name: string?) -> Tabbox,
     AddRightTabbox: (self: Tab, Name: string?) -> Tabbox,
@@ -876,6 +898,7 @@ export type Library = {
     IsMobile: boolean,
     IsRobloxFocused: boolean,
     ScreenGui: ScreenGui?,
+    Window: Window?,
     SearchText: string,
     Searching: boolean,
     GlobalSearch: boolean,
@@ -1017,12 +1040,18 @@ export type Library = {
     Notify: (
         self: Library,
         Info: {
-            Title: string,
+            Title: string?,
             Description: string,
             Time: number?,
             SoundId: string | number?,
+            Volume: number?,
             Steps: number?,
             Persist: boolean?,
+            TitleColor: Color3?,
+            DescriptionColor: Color3?,
+            Icon: string | number?,
+            IconColor: Color3 | string?,
+            BigIcon: string?,
         } | string,
         Time: number?,
         SoundId: string | number?
