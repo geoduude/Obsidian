@@ -697,6 +697,7 @@ export type Tabbox = {
 }
 
 export type Tab = {
+    Window: Window,
     Groupboxes: { [string]: Groupbox },
     Tabboxes: { [string]: Tabbox },
     DependencyGroupboxes: { [number]: DependencyGroupbox },
@@ -723,6 +724,7 @@ export type Tab = {
 export type KeyTab = BaseGroupbox & {
     Elements: { [any]: any },
     IsKeyTab: true,
+    Window: Window,
     Container: ScrollingFrame,
 
     AddKeyBox: (self: KeyTab, ExpectedKey: string?, Callback: (Success: boolean, Key: string) -> ()) -> (),
@@ -798,7 +800,7 @@ export type DialogButtonInfo = {
     Variant: "Primary" | "Secondary" | "Destructive" | "Ghost"?,
     WaitTime: number?,
     Order: number?,
-    Callback: (() -> ())?,
+    Callback: ((Dialog) -> ())?,
 }
 
 export type Dialog = {
@@ -811,44 +813,6 @@ export type Dialog = {
     Dismiss: (self: Dialog) -> (),
 }
 
-export type LoadingInfo = {
-    Title: string?,
-    Icon: string | number?,
-    IconSize: UDim2?,
-    LoadingIcon: string | number?,
-    LoadingIconColor: Color3?,
-    LoadingIconTweenTime: number?,
-    CurrentStep: number?,
-    TotalSteps: number?,
-    ShowSidebar: boolean?,
-    AutoResizeHeight: boolean?,
-    WindowWidth: number?,
-    WindowHeight: number?,
-    ContentWidth: number?,
-    SidebarWidth: number?,
-}
-
-export type Loading = {
-    UpdateLayout: (self: Loading) -> (),
-    RecalculateLoadingHeight: (self: Loading) -> (),
-    SetMessage: (self: Loading, Text: string) -> (),
-    SetDescription: (self: Loading, Text: string) -> (),
-    SetLoadingIcon: (self: Loading, Icon: string | number) -> (),
-    SetLoadingIconTweenTime: (self: Loading, TweenTime: number) -> (),
-    SetLoadingIconColor: (self: Loading, Color: Color3) -> (),
-    SetCurrentStep: (self: Loading, Step: number) -> (),
-    SetTotalSteps: (self: Loading, Steps: number) -> (),
-    SetWindowHeight: (self: Loading, Height: number) -> (),
-    SetWindowWidth: (self: Loading, Width: number) -> (),
-    SetContentWidth: (self: Loading, Width: number) -> (),
-    SetSidebarWidth: (self: Loading, Width: number) -> (),
-    ShowSidebarPage: (self: Loading, Bool: boolean) -> (),
-    ShowErrorPage: (self: Loading, Enabled: boolean) -> (),
-    RecalculateErrorHeight: (self: Loading) -> (),
-    SetErrorMessage: (self: Loading, Text: string) -> (),
-    SetErrorButtons: (self: Loading, Buttons: { [string]: DialogButtonInfo }) -> (),
-    Destroy: (self: Loading) -> (),
-}
 
 export type Window = {
     IsSidebarCompacted: (self: Window) -> boolean,
