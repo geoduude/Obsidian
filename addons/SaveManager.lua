@@ -456,7 +456,7 @@ local SaveManager = {} do
                 return
             end
 
-            local Dialog; Dialog = self.Library.Window:AddDialog("SaveManager_CreateOverwrite", {
+            self.Library.Window:AddDialog("SaveManager_CreateOverwrite", {
                 Title = "Config already exists",
                 Description = string.format("A config named %q already exists. Overwriting will replace it with your current settings.", name),
                 AutoDismiss = true,
@@ -465,7 +465,7 @@ local SaveManager = {} do
                         Title = "Cancel",
                         Variant = "Ghost",
                         Order = 1,
-                        Callback = function()
+                        Callback = function(Dialog)
                             Dialog:Dismiss()
                         end
                     },
@@ -474,7 +474,7 @@ local SaveManager = {} do
                         Title = "Overwrite",
                         Variant = "Destructive",
                         Order = 2,
-                        Callback = function()
+                        Callback = function(Dialog)
                             Dialog:Dismiss()
                             SaveConfig()
                         end
@@ -508,7 +508,7 @@ local SaveManager = {} do
                 return
             end
 
-            local Dialog; Dialog = self.Library.Window:AddDialog("SaveManager_OverwriteConfig", {
+            self.Library.Window:AddDialog("SaveManager_OverwriteConfig", {
                 Title = "Overwrite config",
                 Description = string.format("Are you sure you want to overwrite %q with your current settings? This cannot be undone.", name),
                 AutoDismiss = true,
@@ -517,7 +517,7 @@ local SaveManager = {} do
                         Title = "Cancel",
                         Variant = "Ghost",
                         Order = 1,
-                        Callback = function()
+                        Callback = function(Dialog)
                             Dialog:Dismiss()
                         end
                     },
@@ -526,7 +526,7 @@ local SaveManager = {} do
                         Title = "Overwrite",
                         Variant = "Destructive",
                         Order = 2,
-                        Callback = function()
+                        Callback = function(Dialog)
                             Dialog:Dismiss()
 
                             local success, err = self:Save(name)
@@ -549,7 +549,7 @@ local SaveManager = {} do
                 return
             end
 
-            local Dialog; Dialog = self.Library.Window:AddDialog("SaveManager_DeleteConfig", {
+            self.Library.Window:AddDialog("SaveManager_DeleteConfig", {
                 Title = "Delete config",
                 Description = string.format("Are you sure you want to delete %q? This cannot be undone.", name),
                 AutoDismiss = true,
@@ -558,7 +558,7 @@ local SaveManager = {} do
                         Title = "Cancel",
                         Variant = "Ghost",
                         Order = 1,
-                        Callback = function()
+                        Callback = function(Dialog)
                             Dialog:Dismiss()
                         end
                     },
@@ -567,7 +567,7 @@ local SaveManager = {} do
                         Title = "Delete",
                         Variant = "Destructive",
                         Order = 2,
-                        Callback = function()
+                        Callback = function(Dialog)
                             Dialog:Dismiss()
 
                             local success, err = self:Delete(name)
@@ -606,9 +606,8 @@ local SaveManager = {} do
             self.Library:Notify(string.format("Set %q to auto load", name))
             self.AutoloadConfigLabel:SetText("Current autoload config: " .. name)
         end)
-
         section:AddButton("Reset autoload", function()
-            local Dialog; Dialog = self.Library.Window:AddDialog("SaveManager_ResetAutoload", {
+            self.Library.Window:AddDialog("SaveManager_ResetAutoload", {
                 Title = "Reset autoload config",
                 Description = "Are you sure you want to clear the autoload config? No config will be loaded automatically on next launch.",
                 AutoDismiss = true,
@@ -617,7 +616,7 @@ local SaveManager = {} do
                         Title = "Cancel",
                         Variant = "Ghost",
                         Order = 1,
-                        Callback = function()
+                        Callback = function(Dialog)
                             Dialog:Dismiss()
                         end
                     },
@@ -626,7 +625,7 @@ local SaveManager = {} do
                         Title = "Reset",
                         Variant = "Destructive",
                         Order = 2,
-                        Callback = function()
+                        Callback = function(Dialog)
                             Dialog:Dismiss()
 
                             local success, err = self:DeleteAutoLoadConfig()
