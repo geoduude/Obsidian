@@ -290,7 +290,7 @@ do
             LibraryScheme["Font"] = Font.fromEnum(Enum.Font.Code)
         end
 
-        for _, field in { "RedColor", "DarkColor", "WhiteColor" } do
+        for _, field in { "RedColor", "DestructiveColor", "DarkColor", "WhiteColor" } do
             LibraryScheme[field] = self.Library.Scheme[field]
         end
 
