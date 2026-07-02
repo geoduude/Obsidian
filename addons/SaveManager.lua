@@ -182,7 +182,7 @@ local ElementParser = {}; do
         end,
         function(Element: any?, Data: any)
             if not Element then return end
-            if type(Data.text) ~= "string" then return end
+            if typeof(Data.text) ~= "string" then return end
             if Element.Value == Data.text then return end
 
             Element:SetValue(Data.text)
