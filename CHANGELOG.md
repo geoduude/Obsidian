@@ -1,3 +1,42 @@
+## 05.07.2026
+
+```diff
+[features]
++ Added Animations.ToggleWindow
++ Added Animations.TabSwitch, TabTransitionTime, TabSwipeOffset, TabSwipeFrom (left/right/top/bottom)
++ Added Animations.Dropdown
++ Window:SetAnimations(Animations, TabTransitionTime, TabSwipeOffset, TabSwipeFrom)
++ Added DisableCollapsing to AddLeftGroupbox, AddRightGroupbox
+
+[changes]
++ KeyPickers now allow setting the bind to any modifier key if it was only pressed and not held down
+
+[fixes]
++ Fixed Library.ToggleKeybind not working properly with modifier keys
++ Fixed KeyPickers firing while picking a bind for any KeyPicker
+```
+
+## 02.07.2026
+
+```diff
+[changes]
++ Save Manager and Theme Manager refactored
++ Save Manager now saves the keybind menu visibility and position
++ Save Manager and Theme Manager now show what theme is the default and what config is autoloaded inside the dropdowns
+
+[fixes]
++ Fixed dialogs buttons breaking with Destructive buttons if ThemeManager:SetDefaultTheme was used
+```
+
+## 01.07.2026
+
+```diff
+[features]
++ Confirmation dialogs to destructive actions in Save Manager and Theme Manager
++ Groupbox collapsed state now saves in configuration files
+```
+
+
 ## 28.06.2026
 
 ```diff
