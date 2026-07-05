@@ -1,3 +1,14 @@
+## 05.07.2026
+
+```diff
+[changes]
++ KeyPickers now allow setting the bind to any modifier key if it was only pressed and not held down
+
+[fixes]
++ Fixed Library.ToggleKeybind not working properly with modifier keys
++ Fixed KeyPickers firing while picking a bind for any KeyPicker
+```
+
 ## 02.07.2026
 
 ```diff
