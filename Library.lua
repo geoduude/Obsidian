@@ -3434,7 +3434,7 @@ do
                     return false
                 end
 
-                if Library.IsPicking then
+                if Picking then
                     return false
                 end
 
@@ -3462,7 +3462,7 @@ do
         end
 
         function KeyPicker:DoClick()
-            if Library.IsPicking then
+            if Picking then
                 return
             end
 
@@ -3525,10 +3525,8 @@ do
             end
 
             local NewModifiers = ConvertToInputModifiers(KeyPicker.Modifiers)
-            if not Library.IsPicking then
-                Library:SafeCallback(KeyPicker.ChangedCallback, KeyCode, NewModifiers)
-                Library:SafeCallback(KeyPicker.Changed, KeyCode, NewModifiers)
-            end
+            Library:SafeCallback(KeyPicker.ChangedCallback, KeyCode, NewModifiers)
+            Library:SafeCallback(KeyPicker.Changed, KeyCode, NewModifiers)
 
             KeyPicker:Update()
         end
