@@ -1,6 +1,12 @@
 ## 05.07.2026
 
 ```diff
+[features]
++ Added Animations.ToggleWindow
++ Added Animations.TabSwitch, TabTransitionTime, TabSwipeOffset, TabSwipeFrom (left/right/top/bottom)
++ Added Animations.Dropdown
++ Window:SetAnimations(Animations, TabTransitionTime, TabSwipeOffset, TabSwipeFrom)
+
 [changes]
 + KeyPickers now allow setting the bind to any modifier key if it was only pressed and not held down
 
