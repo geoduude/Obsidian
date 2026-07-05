@@ -1056,7 +1056,6 @@ export type Library = {
             CompactWidthActivation: number?,
         }
     ) -> Window,
-    CreateLoading: (self: Library, Info: LoadingInfo) -> Loading,
     Toggle: (self: Library, Value: boolean?) -> (),
 }
 
