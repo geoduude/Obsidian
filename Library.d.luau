@@ -1,5 +1,5 @@
 --!strict
--- Last updated: 2026-06-28
+-- Last updated: 2026-07-05
 -- Luau type definitions for the Obsidian UI Library
 
 --// Helper & Configuration Types
@@ -673,6 +673,8 @@ export type Groupbox = BaseGroupbox & {
     Elements: { [number]: Element },
 
     Resize: (self: Groupbox) -> (),
+    SetCollapsed: (self: Groupbox, Collapsed: boolean) -> (),
+    ToggleCollapsed: (self: Groupbox) -> (),
 }
 
 export type SubTab = BaseGroupbox & {
@@ -709,9 +711,33 @@ export type Tab = {
         Info: { IsNormal: boolean?, LockSize: boolean?, Visible: boolean?, Title: string?, Text: string? }
     ) -> (),
     Resize: (self: Tab, ResizeWarningBox: boolean?) -> (),
-    AddGroupbox: (self: Tab, Info: { Side: number, Name: string, IconName: string?, DisableCollapsing: boolean? }) -> Groupbox,
-    AddLeftGroupbox: (self: Tab, Name: string, IconName: string?, DisableCollapsing: boolean?) -> Groupbox,
-    AddRightGroupbox: (self: Tab, Name: string, IconName: string?, DisableCollapsing: boolean?) -> Groupbox,
+    AddGroupbox: (
+        self: Tab,
+        Info: {
+            Side: number,
+            Name: string,
+            IconName: string?,
+            Visible: boolean?,
+            Collapsed: boolean?,
+            DisableCollapsing: boolean?,
+        }
+    ) -> Groupbox,
+    AddLeftGroupbox: (
+        self: Tab,
+        Name: string,
+        IconName: string?,
+        Visible: boolean?,
+        Collapsed: boolean?,
+        DisableCollapsing: boolean?
+    ) -> Groupbox,
+    AddRightGroupbox: (
+        self: Tab,
+        Name: string,
+        IconName: string?,
+        Visible: boolean?,
+        Collapsed: boolean?,
+        DisableCollapsing: boolean?
+    ) -> Groupbox,
     AddTabbox: (self: Tab, Info: { Side: number, Name: string? }) -> Tabbox,
     AddLeftTabbox: (self: Tab, Name: string?) -> Tabbox,
     AddRightTabbox: (self: Tab, Name: string?) -> Tabbox,
@@ -851,6 +877,13 @@ export type Window = {
     SetBackgroundImage: (self: Window, Image: string) -> (),
     SetFooter: (self: Window, Footer: string) -> (),
     SetCornerRadius: (self: Window, Radius: number) -> (),
+    SetAnimations: (
+        self: Window,
+        Animations: { [string]: boolean }?,
+        TabTransitionTime: number?,
+        TabSwipeOffset: number?,
+        TabSwipeFrom: ("left" | "right" | "top" | "bottom" | string)?
+    ) -> (),
     Toggle: (self: Window, Value: boolean?) -> (),
 }
 
@@ -878,6 +911,14 @@ export type Library = {
     ToggleKeybind: Enum.KeyCode,
     TweenInfo: TweenInfo,
     NotifyTweenInfo: TweenInfo,
+    TabTransitionInfo: TweenInfo,
+    TabSwipeOffset: number,
+    TabSwipeFrom: string,
+    Animations: {
+        ToggleWindow: boolean,
+        TabSwitch: boolean,
+        Dropdown: boolean,
+    },
     Toggled: boolean,
     Unloaded: boolean,
     Labels: { [string | number]: Label },
@@ -1054,6 +1095,14 @@ export type Library = {
             SidebarCompactWidth: number?,
             SidebarCollapseThreshold: number?,
             CompactWidthActivation: number?,
+            Animations: {
+                ToggleWindow: boolean?,
+                TabSwitch: boolean?,
+                Dropdown: boolean?,
+            }?,
+            TabTransitionTime: number?,
+            TabSwipeOffset: number?,
+            TabSwipeFrom: ("left" | "right" | "top" | "bottom" | string)?,
         }
     ) -> Window,
     Toggle: (self: Library, Value: boolean?) -> (),

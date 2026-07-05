@@ -10663,6 +10663,11 @@ function Library:CreateWindow(WindowInfo)
         return Dialog
     end
 
+    local GuiProperties = { "BackgroundTransparency" }
+    local ImageProperties = { "BackgroundTransparency", "ImageTransparency" }
+    local TextProperties = { "BackgroundTransparency", "TextTransparency" }
+    local StrokeProperties = { "Transparency" }
+
     local function FadeInstance(Desc, Properties)
         local Cache = TransparencyCache[Desc]
         if not Cache then
@@ -10724,21 +10729,18 @@ function Library:CreateWindow(WindowInfo)
                     continue
                 end
 
-                local Properties = {}
-
                 if Instance:IsA("GuiObject") then
-                    table.insert(Properties, "BackgroundTransparency")
+                    local ClassName = Instance.ClassName
+                    if ClassName == "ImageLabel" or ClassName == "ImageButton" then
+                        FadeInstance(Instance, ImageProperties)
+                    elseif ClassName == "TextLabel" or ClassName == "TextBox" or ClassName == "TextButton" then
+                        FadeInstance(Instance, TextProperties)
+                    else
+                        FadeInstance(Instance, GuiProperties)
+                    end
+                elseif Instance.ClassName == "UIStroke" then
+                    FadeInstance(Instance, StrokeProperties)
                 end
-
-                if Instance:IsA("ImageLabel") or Instance:IsA("ImageButton") then
-                    table.insert(Properties, "ImageTransparency")
-                elseif Instance:IsA("TextLabel") or Instance:IsA("TextBox") or Instance:IsA("TextButton") then
-                    table.insert(Properties, "TextTransparency")
-                elseif Instance:IsA("UIStroke") then
-                    table.insert(Properties, "Transparency")
-                end
-
-                FadeInstance(Instance, Properties)
             end
 
             task.delay(FadeTime, function()
