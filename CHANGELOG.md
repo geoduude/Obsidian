@@ -6,6 +6,7 @@
 + Added Animations.TabSwitch, TabTransitionTime, TabSwipeOffset, TabSwipeFrom (left/right/top/bottom)
 + Added Animations.Dropdown
 + Window:SetAnimations(Animations, TabTransitionTime, TabSwipeOffset, TabSwipeFrom)
++ Added DisableCollapsing to AddLeftGroupbox, AddRightGroupbox
 
 [changes]
 + KeyPickers now allow setting the bind to any modifier key if it was only pressed and not held down
