@@ -483,6 +483,7 @@ local Templates = {
         ValueImages = {},
 
         Multi = false,
+        DragSelect = false,
         MaxVisibleDropdownItems = 8,
 
         Callback = function() end,
@@ -6196,6 +6197,7 @@ do
             ValueImages = Info.ValueImages,
 
             Multi = Info.Multi,
+            DragSelect = Info.Multi and Info.DragSelect or false,
 
             SpecialType = Info.SpecialType,
             ExcludeLocalPlayer = Info.ExcludeLocalPlayer,
@@ -6594,6 +6596,7 @@ do
 
                     if Info.Multi then
                         Button.InputBegan:Connect(function(Input)
+                            if not Dropdown.DragSelect then return end
                             if not IsMouseInput(Input) then return end
 
                             DragSelectState = not Selected
@@ -6766,6 +6769,14 @@ do
 
             Label.Text = Text and Text or ""
             Label.Visible = not not Text
+        end
+
+        function Dropdown:SetDragSelect(Value: boolean)
+            Dropdown.DragSelect = Info.Multi and Value or false
+
+            if not Dropdown.DragSelect then
+                StopDragSelect()
+            end
         end
 
         local ToggleDropdown = function()
