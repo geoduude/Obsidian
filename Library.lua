@@ -6594,9 +6594,7 @@ do
 
                     if Info.Multi then
                         Button.InputBegan:Connect(function(Input)
-                            local IsValidDragStart = Input.UserInputType == Enum.UserInputType.MouseButton1
-                            or Input.UserInputType == Enum.UserInputType.Touch
-                            if not IsValidDragStart then return end
+                            if not IsMouseInput(Input) then return end
 
                             DragSelectState = not Selected
                             DragSelecting = true
@@ -6616,9 +6614,7 @@ do
                                 DragInputEndedConn:Disconnect()
                             end
                             DragInputEndedConn = UserInputService.InputEnded:Connect(function(EndInput)
-                                local IsValidDragEnd = EndInput.UserInputType == Enum.UserInputType.MouseButton1
-                                or EndInput.UserInputType == Enum.UserInputType.Touch
-                                if not IsValidDragEnd then return end
+                                if not IsMouseInput(EndInput) then return end
                                 Library:UpdateDependencyBoxes()
                                 Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
                                 Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
