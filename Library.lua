@@ -11652,8 +11652,8 @@ function Library:Unload()
     end
 
     --// Run Unload Callbacks
-    for Index = #Library.UnloadSignals, 1, -1 do
-        local Callback = table.remove(Library.UnloadSignals, Index)
+    for _ = 1, #Library.UnloadSignals do
+        local Callback = table.remove(Library.UnloadSignals, 1)
 
         if Callback then
             Library:SafeCallback(Callback)
