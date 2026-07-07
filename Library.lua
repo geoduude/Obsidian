@@ -3471,7 +3471,7 @@ do
                     return
                 end
 
-                KeyPicker.Toggled = true
+				KeyPicker.Toggled = true
             end
 
             Library:SafeCallback(KeyPicker.Callback, KeyPicker.Toggled)
@@ -3479,9 +3479,13 @@ do
 
             if IsForButton then
                 Library:SafeCallback(ParentObj.Func, KeyPicker.Toggled)
+			end
+			
+			if Library.ToggleKeybind == KeyPicker and Library.Toggle then
+                Library:Toggle()
             end
 
-            if KeyPicker.Mode == "Press" then
+			if KeyPicker.Mode == "Press" then
                 KeyPicker.Toggled = false
             end
         end
@@ -10922,8 +10926,7 @@ function Library:CreateWindow(WindowInfo)
             return
         end
 
-        local ToggleKeybind = Library.ToggleKeybind
-        if typeof(ToggleKeybind) == "table" and (ToggleKeybind.Type == "KeyPicker" and ToggleKeybind.Mode ~= "Always" and ToggleKeybind:GetState() == true) or Input.KeyCode == ToggleKeybind then
+        if Input.KeyCode == Library.ToggleKeybind then
             Library:Toggle()
         end
     end))
