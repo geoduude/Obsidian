@@ -644,6 +644,10 @@ local function IsMouseClickInput(Input: InputObject)
         Input.UserInputType == Enum.UserInputType.MouseButton2 or 
         Input.UserInputType == Enum.UserInputType.MouseButton3
 end
+local function IsMovementInput(Input: InputObject)
+    return (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch)
+        and Library.IsRobloxFocused
+end
 
 local function GetTableSize(Table: { [any]: any })
     local Size = 0
@@ -6197,7 +6201,7 @@ do
             ValueImages = Info.ValueImages,
 
             Multi = Info.Multi,
-            DragSelect = Info.Multi and Info.DragSelect or false,
+            DragSelect = Info.Multi and not Library.IsMobile and Info.DragSelect == true,
 
             SpecialType = Info.SpecialType,
             ExcludeLocalPlayer = Info.ExcludeLocalPlayer,
@@ -6453,20 +6457,50 @@ do
             return ReturnCount == true and GetTableSize(Table) or Table
         end
 
+        local Buttons = {}
         local DragSelecting = false
-        local DragSelectState = false
+        local DragStartIndex = nil
+        local DragInitialValues = {}
         local DragInputEndedConn = nil
+        local DragInputChangedConn = nil
 
         local function StopDragSelect()
             DragSelecting = false
-            DragSelectState = false
+            DragStartIndex = nil
+            table.clear(DragInitialValues)
+
             if DragInputEndedConn then
                 DragInputEndedConn:Disconnect()
                 DragInputEndedConn = nil
             end
+
+            if DragInputChangedConn then
+                DragInputChangedConn:Disconnect()
+                DragInputChangedConn = nil
+            end
         end
 
-        local Buttons = {}
+        local function UpdateDrag(CurrentIndex)
+            local Min = math.min(DragStartIndex, CurrentIndex)
+            local Max = math.max(DragStartIndex, CurrentIndex)
+
+            for OtherButton, OtherTable in Buttons do
+                local InRange = OtherTable.Index >= Min and OtherTable.Index <= Max
+                local Try = DragInitialValues[OtherTable.Value]
+                if InRange then
+                    Try = not Try
+                end
+
+                if not (Dropdown:GetActiveValues(true) == 1 and not Try and not Info.AllowNull) then
+                    Dropdown.Value[OtherTable.Value] = Try and true or nil
+                end
+
+                OtherTable:UpdateButton()
+            end
+
+            Dropdown:Display()
+        end
+
         function Dropdown:BuildDropdownList()
             local Values = Dropdown.Values
             local DisabledValues = Dropdown.DisabledValues
@@ -6481,7 +6515,7 @@ do
                 Button.Parent:Destroy()
             end
             table.clear(Buttons)
-            
+
             local Count = 0
             local ProcessedCount = 0
             local TotalLen = GetTableSize(Values) + GetTableSize(DisabledValues)
@@ -6567,12 +6601,14 @@ do
                     end
                 end
 
+                Table.Index = Count
+                Table.Value = Value
+
                 if not IsDisabled then
                     Button.MouseButton1Click:Connect(function()
                         if DragSelecting then return end
 
                         local Try = not Selected
-
                         if not (Dropdown:GetActiveValues(true) == 1 and not Try and not Info.AllowNull) then
                             Selected = Try
                             if Info.Multi then
@@ -6594,51 +6630,51 @@ do
                         Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
                     end)
 
-                    if Info.Multi then
-                        Button.InputBegan:Connect(function(Input)
-                            if not Dropdown.DragSelect then return end
-                            if not IsMouseInput(Input) then return end
+                    if Info.Multi and Dropdown.DragSelect and not Library.IsMobile then
+                        Button.InputBegan:Connect(function(StartInput)
+                            if not IsMouseInput(StartInput) then return end
 
-                            DragSelectState = not Selected
                             DragSelecting = true
+                            DragStartIndex = Table.Index
+                            table.clear(DragInitialValues)
 
-                            local Try = DragSelectState
-                            if not (Dropdown:GetActiveValues(true) == 1 and not Try and not Info.AllowNull) then
-                                Selected = Try
-                                Dropdown.Value[Value] = Selected and true or nil
-                                for _, OtherButton in Buttons do
-                                    OtherButton:UpdateButton()
+                            for OtherButton, OtherTable in Buttons do
+                                DragInitialValues[OtherTable.Value] = Dropdown.Value[OtherTable.Value]
+                            end
+
+                            UpdateDrag(Table.Index)
+
+                            if DragInputEndedConn then DragInputEndedConn:Disconnect() end
+                            if DragInputChangedConn then DragInputChangedConn:Disconnect() end
+
+                            DragInputChangedConn = Library:GiveSignal(UserInputService.InputChanged:Connect(function(ChangeInput)
+                                if not IsMovementInput(ChangeInput) and ChangeInput ~= StartInput then
+                                    return
                                 end
-                            end
-                            Table:UpdateButton()
-                            Dropdown:Display()
 
-                            if DragInputEndedConn then
-                                DragInputEndedConn:Disconnect()
-                            end
-                            DragInputEndedConn = UserInputService.InputEnded:Connect(function(EndInput)
-                                if not IsMouseInput(EndInput) then return end
+                                local Pos = ChangeInput.Position
+                                for OtherButton, OtherTable in Buttons do
+                                    if Library:MouseIsOverFrame(OtherButton, Pos) then
+                                        UpdateDrag(OtherTable.Index)
+                                        break
+                                    end
+                                end
+                            end))
+
+                            DragInputEndedConn = Library:GiveSignal(UserInputService.InputEnded:Connect(function(EndInput)
+                                if EndInput ~= StartInput and not (IsMouseInput(EndInput) and EndInput.UserInputType == StartInput.UserInputType) then
+                                    return
+                                end
+
                                 Library:UpdateDependencyBoxes()
                                 Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
                                 Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
+
                                 StopDragSelect()
-                            end)
+                            end))
+
                             table.insert(Dropdown.Connections, DragInputEndedConn)
-                        end)
-
-                        Button.MouseEnter:Connect(function()
-                            if not DragSelecting then return end
-
-                            local Try = DragSelectState
-                            if not (Dropdown:GetActiveValues(true) == 1 and not Try and not Info.AllowNull) then
-                                Selected = Try
-                                Dropdown.Value[Value] = Selected and true or nil
-                                for _, OtherButton in Buttons do
-                                    OtherButton:UpdateButton()
-                                end
-                            end
-                            Table:UpdateButton()
-                            Dropdown:Display()
+                            table.insert(Dropdown.Connections, DragInputChangedConn)
                         end)
                     end
                 end
@@ -6772,11 +6808,12 @@ do
         end
 
         function Dropdown:SetDragSelect(Value: boolean)
-            Dropdown.DragSelect = Info.Multi and Value or false
-
-            if not Dropdown.DragSelect then
-                StopDragSelect()
+            if not Info.Multi or Library.IsMobile then 
+                Value = false
             end
+
+            Dropdown.DragSelect = Value == true
+            Dropdown:BuildDropdownList()
         end
 
         local ToggleDropdown = function()
