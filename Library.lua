@@ -1116,6 +1116,8 @@ function Library:SetDPIScale(DPIScale: number)
     for _, Notification in Library.Notifications do
         Notification:Resize()
     end
+
+    Library:UpdateNotificationPositions(true)
 end
 
 function Library:GiveSignal(Connection: RBXScriptConnection | RBXScriptSignal)
@@ -1362,9 +1364,9 @@ do
     })
 end
 
---// Notification
+--// Notification \\--
 local NotificationArea
-local NotificationList
+local NotifyOrder = {}
 do
     NotificationArea = New("Frame", {
         AnchorPoint = Vector2.new(1, 0),
@@ -1379,12 +1381,6 @@ do
             Parent = NotificationArea,
         })
     )
-
-    NotificationList = New("UIListLayout", {
-        HorizontalAlignment = Enum.HorizontalAlignment.Right,
-        Padding = UDim.new(0, 8),
-        Parent = NotificationArea,
-    })
 end
 
 --// Lib Functions \\--
@@ -7965,18 +7961,48 @@ function Library:SetBackgroundImage(Image: string | number)
     Library:UpdateColorsUsingRegistry()
 end
 
+function Library:UpdateNotificationPositions(Snap: boolean?)
+    local IsLeft = Library.NotifySide:lower() == "left"
+    local XScale = IsLeft and 0 or 1
+    local RunningY = 0
+
+    for _, FakeBackground in NotifyOrder do
+        local Data = Library.Notifications[FakeBackground]
+        if not (Data and FakeBackground.Parent) then continue end
+
+        local Target = UDim2.new(XScale, 0, 0, RunningY)
+        if Snap or not Data.PositionInitialized then
+            FakeBackground.Position = Target
+            Data.PositionInitialized = true
+
+        elseif FakeBackground.Position ~= Target then
+            TweenService:Create(FakeBackground, Library.NotifyTweenInfo, {
+                Position = Target,
+            }):Play()
+        end
+
+        RunningY = RunningY + FakeBackground.AbsoluteSize.Y + 8
+    end
+end
+
 function Library:SetNotifySide(Side: string)
     Library.NotifySide = Side
 
-    if Side:lower() == "left" then
+    local IsLeft = Side:lower() == "left"
+    if IsLeft then
         NotificationArea.AnchorPoint = Vector2.new(0, 0)
         NotificationArea.Position = UDim2.fromOffset(6, 6)
-        NotificationList.HorizontalAlignment = Enum.HorizontalAlignment.Left
     else
         NotificationArea.AnchorPoint = Vector2.new(1, 0)
         NotificationArea.Position = UDim2.new(1, -6, 0, 6)
-        NotificationList.HorizontalAlignment = Enum.HorizontalAlignment.Right
     end
+
+    for FakeBackground in Library.Notifications do
+        if not (FakeBackground and FakeBackground.Parent) then continue end
+        FakeBackground.AnchorPoint = if IsLeft then Vector2.new(0, 0) else Vector2.new(1, 0)
+    end
+
+    Library:UpdateNotificationPositions(true)
 end
 
 function Library:Notify(...)
@@ -8020,6 +8046,7 @@ function Library:Notify(...)
     end
 
     local FakeBackground = New("Frame", {
+        AnchorPoint = Library.NotifySide:lower() == "left" and Vector2.new(0, 0) or Vector2.new(1, 0),
         AutomaticSize = Enum.AutomaticSize.Y,
         BackgroundTransparency = 1,
         Size = UDim2.fromScale(1, 0),
@@ -8183,6 +8210,10 @@ function Library:Notify(...)
         end
 
         FakeBackground.Size = UDim2.fromOffset(math.max(TitleX, DescX) + 24 + ExtraWidth, 0)
+
+        if Library.Notifications[FakeBackground] then
+            Library:UpdateNotificationPositions()
+        end
     end
 
     function Data:ChangeTitle(Text)
@@ -8218,6 +8249,15 @@ function Library:Notify(...)
         if DeleteConnection then
             DeleteConnection:Disconnect()
         end
+
+        if FakeBackground then
+            local Idx = table.find(NotifyOrder, FakeBackground)
+            if Idx then
+                table.remove(NotifyOrder, Idx)
+            end
+        end
+
+        Library:UpdateNotificationPositions()
 
         TweenService
             :Create(Holder, Library.NotifyTweenInfo, {
@@ -8270,7 +8310,12 @@ function Library:Notify(...)
         }):Destroy()
     end
 
+    Data.Holder = Holder
+
+    table.insert(NotifyOrder, FakeBackground)
     Library.Notifications[FakeBackground] = Data
+
+    Library:UpdateNotificationPositions()
 
     FakeBackground.Visible = true
     TweenService:Create(Holder, Library.NotifyTweenInfo, {
