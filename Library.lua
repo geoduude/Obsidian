@@ -6884,6 +6884,8 @@ do
         function Dropdown:Destroy()
             Dropdown.Destroyed = true
 
+            StopDragSelect()
+
             if Dropdown.Connections then
                 for _, Connection in Dropdown.Connections do
                     Connection:Disconnect()
