@@ -3481,10 +3481,6 @@ do
                 Library:SafeCallback(ParentObj.Func, KeyPicker.Toggled)
             end
 
-            if Library.ToggleKeybind == KeyPicker and Library.Toggle then
-                Library:Toggle()
-            end
-
             if KeyPicker.Mode == "Press" then
                 KeyPicker.Toggled = false
             end
@@ -10915,6 +10911,21 @@ function Library:CreateWindow(WindowInfo)
     --// Execution \\--
     Library:GiveSignal(SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
         Library:UpdateSearch(SearchBox.Text)
+    end))
+
+    Library:GiveSignal(UserInputService.InputBegan:Connect(function(Input: InputObject)
+        if Library.Unloaded then
+            return
+        end
+
+        if UserInputService:GetFocusedTextBox() then
+            return
+        end
+
+        local ToggleKeybind = Library.ToggleKeybind
+        if typeof(ToggleKeybind) == "table" and (ToggleKeybind.Type == "KeyPicker" and ToggleKeybind.Mode ~= "Always" and ToggleKeybind:GetState() == true) or Input.KeyCode == ToggleKeybind then
+            Library:Toggle()
+        end
     end))
 
     Library:GiveSignal(UserInputService.WindowFocused:Connect(function()
