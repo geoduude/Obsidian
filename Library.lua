@@ -8250,9 +8250,11 @@ function Library:Notify(...)
             DeleteConnection:Disconnect()
         end
 
-        local Idx = table.find(NotifyOrder, FakeBackground)
-        if Idx then
-            table.remove(NotifyOrder, Idx)
+        if FakeBackground then
+            local Idx = table.find(NotifyOrder, FakeBackground)
+            if Idx then
+                table.remove(NotifyOrder, Idx)
+            end
         end
 
         Library:UpdateNotificationPositions()
