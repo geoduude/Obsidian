@@ -1,3 +1,17 @@
+## 07.07.2026
+
+```diff
+[features]
++ Dropdown.DragSelect, Dropdown:SetDragSelect(Value: boolean) (only works on non-touch devices and Multi dropdowns)
++ Animations.Groupbox, Animations.KeyPicker
+
+[changes]
++ Notification appear and disappear animations are now smooth
+
+[fixes]
++ Fixed Library.ToggleKeybind
+```
+
 ## 05.07.2026
 
 ```diff
