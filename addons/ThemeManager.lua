@@ -606,9 +606,7 @@ function ThemeManager:CreateThemeManager(Themesbox: any)
         CustomThemeList:SetValues(ThemeManager:ReloadCustomThemes())
         CustomThemeList:SetValue(nil)
 
-        local PreviousValue = ThemeList.Value
         ThemeList:SetValues(BuiltInThemesNames)
-        ThemeList:SetValue(PreviousValue)
     end
 
     local function RefreshDefaultThemeLabel()
@@ -649,6 +647,7 @@ function ThemeManager:CreateThemeManager(Themesbox: any)
         Text = "Background Image",
 
         Default = "",
+        Finished = true,
         ClearTextOnFocus = false,
         ClearTextOnBlur = false
     })

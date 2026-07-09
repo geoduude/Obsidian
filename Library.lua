@@ -7958,6 +7958,7 @@ function Library:SetBackgroundImage(Image: string | number)
     if Library.Window then
         Library.Window:SetBackgroundImage(Image)
     end
+
     Library:UpdateColorsUsingRegistry()
 end
 
@@ -8804,19 +8805,62 @@ function Library:CreateWindow(WindowInfo)
     end
 
     function Window:SetBackgroundImage(Image: string)
-        local BackgroundIcon = Image and Library:GetCustomIcon(Image)
-        if BackgroundIcon then
-            BackgroundImage.Image = BackgroundIcon.Url
-            BackgroundImage.ImageRectOffset = BackgroundIcon.ImageRectOffset
-            BackgroundImage.ImageRectSize = BackgroundIcon.ImageRectSize
-            BackgroundImage.Visible = true
-        else
+        local ValidIcon = false
+
+        if typeof(Image) == "string" then
+            local BackgroundIcon = Library:GetCustomIcon(Image)
+
+            if BackgroundIcon then
+                ValidIcon = true
+
+                BackgroundImage.Image = BackgroundIcon.Url
+                BackgroundImage.ImageRectOffset = BackgroundIcon.ImageRectOffset
+                BackgroundImage.ImageRectSize = BackgroundIcon.ImageRectSize
+                BackgroundImage.Visible = true
+            elseif Image:match("http://") or Image:match("https://") then
+                local RawFileName = Image:match("(.+)%..+$")
+                local _, Domain = Image:match("^(https?://)([^/]+)"); 
+
+                if RawFileName and Domain then
+                    local Extention = string.sub(Image, #RawFileName + 1, #Image)
+                    local FileNamePos = RawFileName:gsub("\\", "/"):find("/[^/]*$")
+                    local FileName = FileNamePos and Image:sub(FileNamePos + 1) or nil
+
+                    if FileName then
+                        ValidIcon = true
+
+                        local AssetName = Domain .. FileName
+                        if #AssetName > 255 then
+                            local NewLength = 255 - #Domain - #Extention
+                            if NewLength < 0 then
+                                AssetName = Domain .. Extention
+                            else
+                                AssetName = Domain .. string.sub(FileName:sub(1, #FileName - #Extention), 1, NewLength) .. Extention
+                            end
+                        end
+
+                        if CustomImageManagerAssets[FileName] == nil then
+                            CustomImageManager.AddAsset(FileName, 0, Image)
+                        else
+                            CustomImageManager.DownloadAsset(FileName, true)
+                        end
+
+                        BackgroundImage.Image = CustomImageManager.GetAsset(FileName)
+                        BackgroundImage.ImageRectOffset = Vector2.zero
+                        BackgroundImage.ImageRectSize = Vector2.zero
+                        BackgroundImage.Visible = true
+                    end
+                end
+            end
+        end
+
+        if not ValidIcon then
             BackgroundImage.Image = ""
             BackgroundImage.ImageRectOffset = Vector2.zero
             BackgroundImage.ImageRectSize = Vector2.zero
             BackgroundImage.Visible = false
         end
-
+    
         WindowInfo.BackgroundImage = Image
     end
 

@@ -1,3 +1,10 @@
+## 09.07.2026
+
+```diff
+[changes]
++ Background Image now supports external URLs using getcustomasset
+```
+
 ## 07.07.2026
 
 ```diff
