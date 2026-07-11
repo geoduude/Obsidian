@@ -538,7 +538,7 @@ function SaveManager:Load(ConfigName: string): (boolean, string?)
         local Parser = ElementParser[Option.type]
         if not Parser then continue end
 
-        task.spawn(Parser.Load, Option.idx, Option)
+        task.defer(Parser.Load, Option.idx, Option)
     end
 
     return true
