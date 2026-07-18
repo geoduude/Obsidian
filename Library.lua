@@ -14,6 +14,7 @@ local getgenv = getgenv or function()
     return shared
 end
 local setclipboard = setclipboard or nil
+local setidentity = setidentity or setthreadidentity or function() end
 local protectgui = protectgui or (syn and syn.protect_gui) or function() end
 local gethui = gethui or function()
     return CoreGui
@@ -1595,6 +1596,8 @@ function Library:MakeDraggable(UI: GuiObject, DragFrame: GuiObject, IgnoreToggle
     end)
 
     InputChanged = UserInputService.InputChanged:Connect(function(Input: InputObject)
+		setidentity(8)
+
         if
             (not IgnoreToggled and not Library.Toggled)
             or (IsMainWindow and Library.CantDragForced)
@@ -1675,6 +1678,8 @@ function Library:MakeResizable(UI: GuiObject, DragFrame: GuiObject, Callback: ()
     end)
 
     InputChanged = UserInputService.InputChanged:Connect(function(Input: InputObject)
+		setidentity(8)
+
         if not UI.Visible or not (ScreenGui and ScreenGui.Parent) then
             Dragging = false
             if Changed and Changed.Connected then
